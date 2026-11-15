@@ -1,0 +1,5 @@
+const CACHE='d2p-health-python-v1';
+const CORE=['./','./index.html','./style.css','./data.js','./app.js','./cloud.js','./manifest.webmanifest','./icon.svg','./questionnaire-english.docx','./questionnaire-bisaya.docx'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('d2p-health-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(e.request.method!=='GET'||u.origin!==self.location.origin)return;if(u.pathname.startsWith('/api/')||u.pathname.startsWith('/signin-')||u.pathname.startsWith('/signout-')||u.pathname==='/callback')return;if(e.request.mode==='navigate'){e.respondWith(fetch(e.request).then(response=>response).catch(()=>caches.match('./index.html')));return}if(!CORE.some(x=>new URL(x,self.registration.scope).pathname===u.pathname))return;e.respondWith(caches.match(e.request,{ignoreSearch:true}).then(hit=>hit||fetch(e.request)))});
